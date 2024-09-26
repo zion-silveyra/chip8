@@ -8,12 +8,12 @@
 
 constexpr int SCALE = 8;
 
-
-
-int main()
+int main(int argc, char* argv[])
 {
     sf::RenderWindow window(sf::VideoMode(64*SCALE, 32*SCALE), "CHIP-8", sf::Style::Default);
-    sf::Time clk_period = sf::milliseconds(10);
+    window.setKeyRepeatEnabled(false);
+    uint8_t windowInFocus{1};
+    sf::Time clk_period = sf::microseconds(1850);
     sf::Clock clock;
     sf::Time elapsed;
     uint64_t cycles{};
@@ -29,35 +29,8 @@ int main()
     sprite.setScale(sf::Vector2f((float)SCALE, (float)SCALE));
     sprite.setPosition(sf::Vector2f(0.0f, 0.0f));
 
-    std::cout << "memdump preload:" << std::endl;
+    chip8.loadProgram(argv[1]);
 
-    for (auto &byte : chip8.mem) {
-        int width{ };
-        std::cout << std::hex << (int)byte;
-        width++;
-
-        if (width > 32) {
-            width = 0;
-            std::cout << std::endl;
-        }
-    }
-
-    chip8.loadProgram("splash.ch8");
-
-/*
-    std::cout << "\nmemdump:" << std::endl;
-
-    for (uint8_t &byte : chip8.mem) {
-        int width{ };
-        std::cout << std::hex << byte;
-        width++;
-
-        if (width > 32) {
-            width = 0;
-            std::cout << std::endl;
-        }
-    }
-*/
     while (window.isOpen())
     {
         sf::Event event;
@@ -66,16 +39,130 @@ int main()
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
+            if (event.type == sf::Event::LostFocus) {
+                windowInFocus &= 0x00;
+            }
+            if (event.type == sf::Event::GainedFocus) {
+                windowInFocus |= 0x01;
+            }
+
+            if (event.type == sf::Event::KeyPressed) {
+                std::cout << "Key pressed" << std::endl;
+                switch (event.key.code) {
+                case sf::Keyboard::Num1: // c8 1
+                    chip8.keypad |= 0x01 << 0x1;
+                    break;
+                case sf::Keyboard::Num2: // c8 2
+                    chip8.keypad |= 0x01 << 0x2;
+                    break;
+                case sf::Keyboard::Num3: // c8 3
+                    chip8.keypad |= 0x01 << 0x3;
+                    break;
+                case sf::Keyboard::Num4: // c8 c
+                    chip8.keypad |= 0x01 << 0xc;
+                    break;
+                case sf::Keyboard::Q:    // c8 4
+                    chip8.keypad |= 0x01 << 0x4;
+                    break;
+                case sf::Keyboard::W:    // c8 5
+                    chip8.keypad |= 0x01 << 0x5;
+                    break;
+                case sf::Keyboard::E:    // c8 6
+                    chip8.keypad |= 0x01 << 0x6;
+                    break;
+                case sf::Keyboard::R:    // c8 d
+                    chip8.keypad |= 0x01 << 0xd;
+                    break;
+                case sf::Keyboard::A:    // c8 7
+                    chip8.keypad |= 0x01 << 0x7;
+                    break;
+                case sf::Keyboard::S:    // c8 8
+                    chip8.keypad |= 0x01 << 0x8;
+                    break;
+                case sf::Keyboard::D:    // c8 9
+                    chip8.keypad |= 0x01 << 0x9;
+                    break;
+                case sf::Keyboard::F:    // c8 e
+                    chip8.keypad |= 0x01 << 0xe;
+                    break;
+                case sf::Keyboard::Z:    // c8 a
+                    chip8.keypad |= 0x01 << 0xa;
+                    break;
+                case sf::Keyboard::X:    // c8 0
+                    chip8.keypad |= 0x01 << 0x0;
+                    break;
+                case sf::Keyboard::C:    // c8 b
+                    chip8.keypad |= 0x01 << 0xb;
+                    break;
+                case sf::Keyboard::V:    // c8 f
+                    chip8.keypad |= 0x01 << 0xf;
+                    break;
+                }
+
+                std::cout << "new keypad state: " << chip8.keypad << std::endl;
+            }
+            if (event.type == sf::Event::KeyReleased) {
+                std::cout << "key released" << std::endl;
+                switch (event.key.code) {
+                case sf::Keyboard::Num1: // c8 1
+                    chip8.keypad ^= 0x01 << 0x1;
+                    break;
+                case sf::Keyboard::Num2: // c8 2
+                    chip8.keypad ^= 0x01 << 0x2;
+                    break;
+                case sf::Keyboard::Num3: // c8 3
+                    chip8.keypad ^= 0x01 << 0x3;
+                    break;
+                case sf::Keyboard::Num4: // c8 c
+                    chip8.keypad ^= 0x01 << 0xc;
+                    break;
+                case sf::Keyboard::Q:    // c8 4
+                    chip8.keypad ^= 0x01 << 0x4;
+                    break;
+                case sf::Keyboard::W:    // c8 5
+                    chip8.keypad ^= 0x01 << 0x5;
+                    break;
+                case sf::Keyboard::E:    // c8 6
+                    chip8.keypad ^= 0x01 << 0x6;
+                    break;
+                case sf::Keyboard::R:    // c8 d
+                    chip8.keypad ^= 0x01 << 0xd;
+                    break;
+                case sf::Keyboard::A:    // c8 7
+                    chip8.keypad ^= 0x01 << 0x7;
+                    break;
+                case sf::Keyboard::S:    // c8 8
+                    chip8.keypad ^= 0x01 << 0x8;
+                    break;
+                case sf::Keyboard::D:    // c8 9
+                    chip8.keypad ^= 0x01 << 0x9;
+                    break;
+                case sf::Keyboard::F:    // c8 e
+                    chip8.keypad ^= 0x01 << 0xe;
+                    break;
+                case sf::Keyboard::Z:    // c8 a
+                    chip8.keypad ^= 0x01 << 0xa;
+                    break;
+                case sf::Keyboard::X:    // c8 0
+                    chip8.keypad ^= 0x01 << 0x0;
+                    break;
+                case sf::Keyboard::C:    // c8 b
+                    chip8.keypad ^= 0x01 << 0xb;
+                    break;
+                case sf::Keyboard::V:    // c8 f
+                    chip8.keypad ^= 0x01 << 0xf;
+                    break;
+                }
+            }
+            std::cout << "new keypad state: " << chip8.keypad << std::endl;
         }
 
-        // Update keypad state if window in focus
-
+       
         // cycle main clock at 540hz
         elapsed = clock.getElapsedTime();
         if ((elapsed >= clk_period)) {
             clock.restart();
             chip8.runCycle();
-            //std::cout << "it ran a cycle?" << std::endl;
             ++cycles;
         }
 
@@ -86,50 +173,26 @@ int main()
         
         // draw when video memory updated
         if (chip8.drawFlag) {
-            std::cout << "draw flag" << std::endl;
             sf::Color drawColor;
             uint16_t vramIndex;
             uint32_t x{0};
             uint32_t y{0};
 
-            //std::cout << "VRAM_DUMP_BEGIN_FRAME" << std::endl;
-
             for (y=0;y<32;++y) {
                 for (x=0;x<64;++x) {
                     vramIndex = (64 * y) + x;
-                    /*
-                    if (chip8.display[vramIndex] == 0) {
-                        std::cout << "x ";
-                    }
-                    else {
-                        std::cout << "0 "; 
-                    }
-                    */
+
                     drawColor = (chip8.display[vramIndex] == 0) ? sf::Color::Black : sf::Color::White;
                     pixelArray.setPixel(x, y, drawColor);
-
-                    
-
                 }
-                //std::cout << std::endl;
             }
 
-            //std::cout << "END_FRAME" << std::endl;
-
-            //std::cout << "didn't explode from pixel array" << std::endl;
-
             screen.loadFromImage(pixelArray);
-            //std::cout << "didn't explode from loading texture" << std::endl;
             sprite.setTexture(screen);
-            //sprite.setScale(sf::Vector2f(2.0f, 2.0f));
-            //sprite.setOrigin(sf::Vector2f(32.0f, 16.0f));
-            //std::cout << "didn't explode from setting sprite texture" << std::endl;
-
 
             window.clear(sf::Color::Black);
             window.draw(sprite);
             window.display();
-            //std::cout << "didn't explode from drawing sprite" << std::endl;
 
             chip8.drawFlag &= 0x00;
         }

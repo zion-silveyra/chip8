@@ -195,8 +195,8 @@ void chip8::executeInstruction(uint16_t instr)
         op_dxyn(regX, regY, imm);
         break;
     case 0xe:
-        if (instr & 0x00FF == 0x9e) op_ex9e(regX);
-        if (instr & 0x00FF == 0xa1) op_exa1(regX);
+        if ((instr & 0x00FF) == 0x9e) op_ex9e(regX);
+        if ((instr & 0x00FF) == 0xa1) op_exa1(regX);
         break;
     case 0xf:
         switch (instr & 0x00FF) {
@@ -296,73 +296,95 @@ void chip8::op_7xkk(uint8_t reg, uint8_t imm)
 void chip8::op_8xy0(uint8_t regA, uint8_t regB)
 {
     v[regA] = v[regB];
+    v[0xf] = 0;
 }
 
 // vx = vx | vy
 void chip8::op_8xy1(uint8_t regA, uint8_t regB)
 {
     v[regA] |= v[regB];
+    v[0xf] = 0;
 }
 
 // vx = vx & vy
 void chip8::op_8xy2(uint8_t regA, uint8_t regB)
 {
     v[regA] &= v[regB];
+    v[0xf] = 0;
 }
 
 // xor
 void chip8::op_8xy3(uint8_t regA, uint8_t regB)
 {
     v[regA] ^= v[regB];
+    v[0xf] = 0;
 }
 
 // add
 void chip8::op_8xy4(uint8_t regA, uint8_t regB)
 {
     uint16_t wide_result{ v[regA] + v[regB]};
-    uint8_t  result{ v[regA] + v[regB]};
+    uint8_t result{ v[regA] + v[regB]};
 
-    if (wide_result != result) v[0xf] = 1;
-    
     v[regA] = result;
+
+    if (wide_result != (uint16_t)result) v[0xf] = 1;
+    else v[0xf] = 0;
+    
+    
 }
 
 // sub
 void chip8::op_8xy5(uint8_t regA, uint8_t regB)
 {
-    if (v[regA] < v[regB]) v[0xf] = 1;
+    uint8_t setFlag{};
+
+    if (v[regA] > v[regB]) {
+        setFlag |= 0x01;
+    }
+
     v[regA] -= v[regB];
+
+    v[0xf] = setFlag;
 }
 
 // shift right
 void chip8::op_8xy6(uint8_t regA, uint8_t regB)
 {
-    // regB is ignored ?? ehh
+    uint8_t setFlag{};
 
     if (v[regA] & 0x01)
-        v[0xf] = 1;
-    
+        setFlag |= 0x01;
+
     v[regA] = v[regA] >> 1;
+    
+    v[0xf] = setFlag;
 }
 
 // subn
 void chip8::op_8xy7(uint8_t regA, uint8_t regB)
 {
-    if (v[regB] < v[regA])
-        v[0xf] = 1;
+    uint8_t setFlag{};
+
+    if (v[regB] > v[regA])
+        setFlag |= 0x01;
 
     v[regA] = v[regB] - v[regA];
+
+    v[0xf] = setFlag; 
 }
 
 // shift left
 void chip8::op_8xye(uint8_t regA, uint8_t regB)
 {
-    // regB ignored
+    uint8_t setFlag{};
 
     if (v[regA] & 0x80)
-        v[0xf] = 1;
+        setFlag |= 0x01;
 
     v[regA] = v[regA] << 1;
+
+    v[0xf] = setFlag;
 }
 
 // skip if not equal (reg, reg)
@@ -423,56 +445,22 @@ void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
     drawFlag |= 0x01;
 }
 
-/*
-void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
-{
-    // remember that a sprite is 8 pixels wide, so, # bytes also # of rows
-    uint8_t  xPos{ v[regA] };
-    uint8_t  yPos{ v[regB] };
-    uint8_t nBytes{ imm };
-    uint8_t sprite[16]{ };
-    bool screenPixelOn, spritePixelOn;
-    int i, j;
-
-    for (i=0;i<nBytes;++i) {
-        sprite[i] = mem[index+i];
-    }
-
-    uint16_t vramIndex;
-
-    for (i=0;i<nBytes;++i) {
-        for (j=0;j<8;++j) {
-            xPos = xPos % 64;
-            yPos = yPos % 32;
-
-            vramIndex = 64*yPos + xPos;
-
-            screenPixelOn = display[vramIndex] != 0;
-            spritePixelOn = (mem[index+i] & (0x80 >> j)) != 0;
-
-            if (screenPixelOn && spritePixelOn)
-                v[0xf] |= 0x01;
-
-            display[vramIndex] = (spritePixelOn ^ screenPixelOn) ? 0xff : 0x00;
-
-            ++xPos;
-        }
-        ++yPos;
-    }
-    drawFlag |= 0x01;
-}
-*/
 
 // skip if key in vx is pressed
 void chip8::op_ex9e(uint8_t reg)
 {
-
+    std::cout << "ex9e called" << std::endl;
+    if ( keypad & (0x01 << v[reg]) )
+        pc += 2;
 }
 
 // skip if key in vx not pressed
 void chip8::op_exa1(uint8_t reg)
 {
-
+    std::cout << "exa1 called" << std::endl;
+    if (!(keypad & (0x01 << v[reg])) ) {
+        pc+=2;
+    }
 }
 
 // reg = delay timer value
@@ -481,38 +469,75 @@ void chip8::op_fx07(uint8_t reg)
     v[reg] = delay;
 }
 
-
+// wait for keypad input, then store key val in vx
 void chip8::op_fx0a(uint8_t reg)
 {
+    if (!keypad) {
+        pc -=2;
+    }
 
+    for (int i=0;i<16;++i) {
+        if (keypad & (0x01 << i))
+            v[reg] = i;
+    }
 }
+
+// set delay timer 
 void chip8::op_fx15(uint8_t reg)
 {
-
+    delay = v[reg];
 }
+
+// set sound timer
 void chip8::op_fx18(uint8_t reg)
 {
-
+    sound = v[reg];
 }
 
+// increment index address
 void chip8::op_fx1e(uint8_t reg)
 {
     index += v[reg];
 }
 
+// set index to font address
 void chip8::op_fx29(uint8_t reg)
 {
     index = 0x50 + (v[reg] * 5);
 }
+
+// BCD of vx into index[0..2]
 void chip8::op_fx33(uint8_t reg)
 {
+    int hundreds, tens, ones, num;
 
+    num = v[reg];
+
+    hundreds = num / 100;
+    num -= 100*hundreds;
+
+    tens = num / 10;
+    ones = num % 10;
+
+    mem[index] = hundreds;
+    mem[index+1] = tens;
+    mem[index+2] = ones;
 }
+
+// dump registers v0 - vx
 void chip8::op_fx55(uint8_t reg)
 {
+    for (int i=0x0;i<=reg;++i) {
+        mem[index++] = v[i];
+    }
+
 
 }
+
+// read registers v0 - vx from index
 void chip8::op_fx65(uint8_t reg)
 {
-
+    for (int i=0x0;i<=reg;++i) {
+        v[i] = mem[index++];
+    }
 }

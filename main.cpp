@@ -6,14 +6,14 @@
 #include <iostream>
 #include "chip8.h"
 
-constexpr int SCALE = 4;
+constexpr int SCALE = 8;
 
 
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(64*SCALE, 32*SCALE), "CHIP-8", sf::Style::Default);
-    sf::Time clk_period = sf::milliseconds(200);
+    sf::Time clk_period = sf::milliseconds(10);
     sf::Clock clock;
     sf::Time elapsed;
     uint64_t cycles{};
@@ -33,7 +33,7 @@ int main()
 
     for (auto &byte : chip8.mem) {
         int width{ };
-        std::cout << std::hex <<byte;
+        std::cout << std::hex << (int)byte;
         width++;
 
         if (width > 32) {
@@ -44,11 +44,12 @@ int main()
 
     chip8.loadProgram("splash.ch8");
 
-    std::cout << "memdump:" << std::endl;
+/*
+    std::cout << "\nmemdump:" << std::endl;
 
-    for (auto &byte : chip8.mem) {
+    for (uint8_t &byte : chip8.mem) {
         int width{ };
-        std::cout << std::hex <<byte;
+        std::cout << std::hex << byte;
         width++;
 
         if (width > 32) {
@@ -56,7 +57,7 @@ int main()
             std::cout << std::endl;
         }
     }
-
+*/
     while (window.isOpen())
     {
         sf::Event event;
@@ -71,10 +72,10 @@ int main()
 
         // cycle main clock at 540hz
         elapsed = clock.getElapsedTime();
-        if (elapsed >= clk_period) {
+        if ((elapsed >= clk_period)) {
             clock.restart();
             chip8.runCycle();
-            std::cout << "it ran a cycle?" << std::endl;
+            //std::cout << "it ran a cycle?" << std::endl;
             ++cycles;
         }
 
@@ -86,33 +87,49 @@ int main()
         // draw when video memory updated
         if (chip8.drawFlag) {
             std::cout << "draw flag" << std::endl;
+            sf::Color drawColor;
+            uint16_t vramIndex;
             uint32_t x{0};
             uint32_t y{0};
 
-            for (auto &pixel : chip8.display) {
-                std::cout << "entered the px array for loop " <<std::endl;
-                pixelArray.setPixel(x, y, (pixel == 0 ? sf::Color::Black : sf::Color::White));
-                std::cout << "set pixel " << x << ", " << y << std::endl;
-                ++x;
-                if (x == 64) {
-                    x = 0;
-                    ++y;
+            //std::cout << "VRAM_DUMP_BEGIN_FRAME" << std::endl;
+
+            for (y=0;y<32;++y) {
+                for (x=0;x<64;++x) {
+                    vramIndex = (64 * y) + x;
+                    /*
+                    if (chip8.display[vramIndex] == 0) {
+                        std::cout << "x ";
+                    }
+                    else {
+                        std::cout << "0 "; 
+                    }
+                    */
+                    drawColor = (chip8.display[vramIndex] == 0) ? sf::Color::Black : sf::Color::White;
+                    pixelArray.setPixel(x, y, drawColor);
+
+                    
+
                 }
-                if (y == 32) break; // should never execute
+                //std::cout << std::endl;
             }
 
-            std::cout << "didn't explode from pixel array" << std::endl;
+            //std::cout << "END_FRAME" << std::endl;
+
+            //std::cout << "didn't explode from pixel array" << std::endl;
 
             screen.loadFromImage(pixelArray);
-            std::cout << "didn't explode from loading texture" << std::endl;
+            //std::cout << "didn't explode from loading texture" << std::endl;
             sprite.setTexture(screen);
-            std::cout << "didn't explode from setting sprite texture" << std::endl;
+            //sprite.setScale(sf::Vector2f(2.0f, 2.0f));
+            //sprite.setOrigin(sf::Vector2f(32.0f, 16.0f));
+            //std::cout << "didn't explode from setting sprite texture" << std::endl;
 
 
             window.clear(sf::Color::Black);
             window.draw(sprite);
             window.display();
-            std::cout << "didn't explode from drawing sprite" << std::endl;
+            //std::cout << "didn't explode from drawing sprite" << std::endl;
 
             chip8.drawFlag &= 0x00;
         }

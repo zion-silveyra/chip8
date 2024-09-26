@@ -3,16 +3,48 @@
 #include <fstream>
 #include <array>
 #include <cstdint>
+#include <iostream>
 
 void chip8::reset()
 {
     std::fill(std::begin(display), std::end(display), 0);
+    std::fill(std::begin(mem), std::end(mem), 0);
     std::fill(std::begin(v), std::end(v), 0);
+    std::fill(std::begin(stack), std::end(stack), 0);
     pc = 0x200;
     sp = 0;
     delay = 0;
     sound = 0;
     index = 0;
+
+    loadFonts();
+}
+
+void chip8::loadFonts()
+{
+    const unsigned int FONTSET_SIZE = 80;
+
+    uint8_t fontset[FONTSET_SIZE] =
+    {
+	    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+	    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+	    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    	0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    	0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    	0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    	0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+	    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+	    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+	    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+	    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+	    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+	    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+	    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+	    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    	0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+    };
+
+    std::copy(std::begin(fontset), std::end(fontset), &mem[0x50]);
 }
 
 void chip8::loadProgram(char const* filename)
@@ -20,12 +52,23 @@ void chip8::loadProgram(char const* filename)
     std::ifstream ifstream;
     ifstream.open(filename, std::ios::binary);
 
-    char buf[0x1000-0x200];
-    ifstream.read(buf, 0x1000-0x200);
+    char buf[0xFFF-0x200];
+    std::fill(std::begin(buf), std::end(buf), 0);
+
+    ifstream.read(buf, 0x0FFF-0x200);
 
     std::copy(std::begin(buf), std::end(buf), &mem[0x200]);
 
-    
+    std::cout << "\nMemory dump after program load:\n";
+    int w = 0;
+    for (int i=0;i<4096;++i) {
+        std::cout << std::hex << (uint16_t)mem[i] << " ";
+        if (++w == 16) {
+            std::cout << std::endl;
+            w=0;
+        }
+    }
+
 }
 
 void chip8::runTimers()
@@ -51,10 +94,13 @@ void chip8::runCycle()
         decrementTimers = false;
     }
     
-    
+    std::cout << "fetch from pc : " << pc;
+
     uint16_t instr = (mem[pc] << 8) | mem[pc+1];
     pc += 2;
 
+    std::cout << " ... exec instr : ";
+    std::cout << std::hex << instr << std::endl;
     executeInstruction(instr);
 
 }
@@ -198,8 +244,8 @@ void chip8::op_00e0()
 // Return from subroutine
 void chip8::op_00ee()
 {
-    pc = mem[sp];
     --sp;
+    pc = stack[sp];
 }
 
 // jump
@@ -211,8 +257,8 @@ void chip8::op_1nnn(uint16_t addr)
 // call subroutine 
 void chip8::op_2nnn(uint16_t addr)
 {
-    ++sp;
     stack[sp] = pc;
+    ++sp;
     pc = addr;
 }
 
@@ -350,13 +396,41 @@ void chip8::op_cxkk(uint8_t reg, uint8_t imm)
 
 // draw sprite (idk, this might work)
 // it probably doesn't wrap correctly though
+
+void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
+{
+    uint8_t xPos = v[regA];
+    uint8_t yPos = v[regB];
+    uint8_t spriteHeight = imm;
+
+    int i,j;
+    int vramIndex;
+
+    //std::cout << std::dec << "Sprite initial position, height: " << "(" << (int)xPos << ", " << (int)yPos;
+    //std::cout << "), " << (int)spriteHeight << std::endl;
+
+    for (i=0;i<spriteHeight;++i) {
+        for (j=0;j<8;++j) {
+            vramIndex = 64*((yPos + i) % 32) + ((xPos+j) % 64);
+
+            if ((bool)display[vramIndex] && (bool)(mem[index+i] & (0x80 >> j))) {
+                v[0xf] |= 0x01;
+            }
+
+            display[vramIndex] ^= (mem[index+i] & (0x80 >> j));
+        }
+    }
+    drawFlag |= 0x01;
+}
+
+/*
 void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
 {
     // remember that a sprite is 8 pixels wide, so, # bytes also # of rows
-    uint8_t  xPos{ regA };
-    uint8_t  yPos{ regB };
+    uint8_t  xPos{ v[regA] };
+    uint8_t  yPos{ v[regB] };
     uint8_t nBytes{ imm };
-    uint8_t sprite[32]{ };
+    uint8_t sprite[16]{ };
     bool screenPixelOn, spritePixelOn;
     int i, j;
 
@@ -367,14 +441,14 @@ void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
     uint16_t vramIndex;
 
     for (i=0;i<nBytes;++i) {
-        for (j=0;j<7;++j) {
-            xPos %= 64;
-            yPos %= 32;
+        for (j=0;j<8;++j) {
+            xPos = xPos % 64;
+            yPos = yPos % 32;
 
             vramIndex = 64*yPos + xPos;
 
             screenPixelOn = display[vramIndex] != 0;
-            spritePixelOn = (sprite[i] & (0x80 >> j));
+            spritePixelOn = (mem[index+i] & (0x80 >> j)) != 0;
 
             if (screenPixelOn && spritePixelOn)
                 v[0xf] |= 0x01;
@@ -387,6 +461,7 @@ void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
     }
     drawFlag |= 0x01;
 }
+*/
 
 // skip if key in vx is pressed
 void chip8::op_ex9e(uint8_t reg)
@@ -419,13 +494,15 @@ void chip8::op_fx18(uint8_t reg)
 {
 
 }
+
 void chip8::op_fx1e(uint8_t reg)
 {
-
+    index += v[reg];
 }
+
 void chip8::op_fx29(uint8_t reg)
 {
-
+    index = 0x50 + (v[reg] * 5);
 }
 void chip8::op_fx33(uint8_t reg)
 {

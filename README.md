@@ -10,6 +10,15 @@ To use:
 ```
 ./chip8 ROM_FILE
 ```
+#### Controls
+The keypad is mapped to the keys:
+```
+1 2 3 4
+Q W E R
+A S D F
+Z X C V
+```
+You can use backspace to reset / reload the current ROM
 
 #### The current state of things:
 - Does not have audio

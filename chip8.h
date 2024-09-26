@@ -3,14 +3,14 @@
 
 class chip8 {
 public:
-    uint8_t display[64 * 32];
+    uint8_t display[64*32];
     uint16_t keypad;
 
     bool audioIsPlaying();
 
 private:
     uint8_t  v[16];
-    uint16_t pc, i;
+    uint16_t pc, index;
 
     uint16_t stack[16];
     uint8_t  sp;

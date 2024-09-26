@@ -11,6 +11,7 @@ void chip8::reset()
     sp = 0;
     delay = 0;
     sound = 0;
+    index = 0;
 }
 
 void chip8::loadProgram(char const* filename)
@@ -313,7 +314,7 @@ void chip8::op_9xy0(uint8_t regA, uint8_t regB)
 // load -> index
 void chip8::op_annn(uint16_t addr)
 {
-    i = addr;
+    index = addr;
 }
 
 // jump offset (v0 + addr)
@@ -325,29 +326,69 @@ void chip8::op_bnnn(uint16_t addr)
 // random number, then AND 
 void chip8::op_cxkk(uint8_t reg, uint8_t imm)
 {
+    // maybe use my own RNG 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(0x00, 0xff);
 
     v[reg] = distribution(generator) & imm;
 }
 
-// draw sprite 
+// draw sprite (idk, this might work)
+// it probably doesn't wrap correctly though
 void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
 {
+    // remember that a sprite is 8 pixels wide, so, # bytes also # of rows
+    uint8_t  xPos{ regA };
+    uint8_t  yPos{ regB };
+    uint8_t nBytes{ imm };
+    uint8_t sprite[32]{ };
+    bool screenPixelOn, spritePixelOn;
+    int i, j;
+
+    for (i=0;i<nBytes;++i) {
+        sprite[i] = mem[index+i];
+    }
+
+    uint16_t vramIndex;
+
+    for (i=0;i<nBytes;++i) {
+        for (j=0;j<7;++j) {
+            vramIndex = 64*yPos + xPos;
+
+            screenPixelOn = display[vramIndex] != 0;
+            spritePixelOn = (sprite[i] & (0x80 >> j))
+
+            if (screenPixelOn && spritePixelOn)
+                v[0xf] |= 0x01;
+
+            display[vramIndex] = (spritePixelOn ^ screenPixelOn) ? 0xff : 0x00;
+
+            ++xPos;
+        }
+        ++yPos;
+    }
 
 }
+
+// skip if key in vx is pressed
 void chip8::op_ex9e(uint8_t reg)
 {
 
 }
+
+// skip if key in vx not pressed
 void chip8::op_exa1(uint8_t reg)
 {
 
 }
+
+// reg = delay timer value
 void chip8::op_fx07(uint8_t reg)
 {
-
+    v[reg] = delay;
 }
+
+
 void chip8::op_fx0a(uint8_t reg)
 {
 

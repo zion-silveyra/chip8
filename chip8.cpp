@@ -59,12 +59,12 @@ void chip8::loadProgram(char const* filename)
 
     std::copy(std::begin(buf), std::end(buf), &mem[0x200]);
 
-    std::cout << "\nMemory dump after program load:\n";
+    //std::cout << "\nMemory dump after program load:\n";
     int w = 0;
     for (int i=0;i<4096;++i) {
-        std::cout << std::hex << (uint16_t)mem[i] << " ";
+        //std::cout << std::hex << (uint16_t)mem[i] << " ";
         if (++w == 16) {
-            std::cout << std::endl;
+            //std::cout << std::endl;
             w=0;
         }
     }
@@ -94,13 +94,13 @@ void chip8::runCycle()
         decrementTimers = false;
     }
     
-    std::cout << "fetch from pc : " << pc;
+    //std::cout << "fetch from pc : " << pc;
 
     uint16_t instr = (mem[pc] << 8) | mem[pc+1];
     pc += 2;
 
-    std::cout << " ... exec instr : ";
-    std::cout << std::hex << instr << std::endl;
+    //std::cout << " ... exec instr : ";
+    //std::cout << std::hex << instr << std::endl;
     executeInstruction(instr);
 
 }
@@ -449,7 +449,7 @@ void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
 // skip if key in vx is pressed
 void chip8::op_ex9e(uint8_t reg)
 {
-    std::cout << "ex9e called" << std::endl;
+    //std::cout << "ex9e called" << std::endl;
     if ( keypad & (0x01 << v[reg]) )
         pc += 2;
 }
@@ -457,7 +457,7 @@ void chip8::op_ex9e(uint8_t reg)
 // skip if key in vx not pressed
 void chip8::op_exa1(uint8_t reg)
 {
-    std::cout << "exa1 called" << std::endl;
+    //std::cout << "exa1 called" << std::endl;
     if (!(keypad & (0x01 << v[reg])) ) {
         pc+=2;
     }

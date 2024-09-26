@@ -2,11 +2,12 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
+#include <SFML/Audio.hpp>
 #include <cstdint>
 #include <iostream>
 #include "chip8.h"
 
-constexpr int SCALE = 8;
+constexpr int SCALE = 16;
 
 int main(int argc, char* argv[])
 {
@@ -24,6 +25,10 @@ int main(int argc, char* argv[])
     sf::Image pixelArray;
     sf::Texture screen;
     sf::Sprite  sprite;
+
+    sf::Sound audio;
+    sf::SoundBuffer audioBuf;
+
 
     pixelArray.create(64, 32, sf::Color::Black);
     sprite.setScale(sf::Vector2f((float)SCALE, (float)SCALE));
@@ -47,8 +52,11 @@ int main(int argc, char* argv[])
             }
 
             if (event.type == sf::Event::KeyPressed) {
-                std::cout << "Key pressed" << std::endl;
                 switch (event.key.code) {
+                case sf::Keyboard::BackSpace:
+                    chip8.reset();
+                    chip8.loadProgram(argv[1]);
+                    break;
                 case sf::Keyboard::Num1: // c8 1
                     chip8.keypad |= 0x01 << 0x1;
                     break;
@@ -99,10 +107,10 @@ int main(int argc, char* argv[])
                     break;
                 }
 
-                std::cout << "new keypad state: " << chip8.keypad << std::endl;
+                //std::cout << "new keypad state: " << chip8.keypad << std::endl;
             }
             if (event.type == sf::Event::KeyReleased) {
-                std::cout << "key released" << std::endl;
+                //std::cout << "key released" << std::endl;
                 switch (event.key.code) {
                 case sf::Keyboard::Num1: // c8 1
                     chip8.keypad ^= 0x01 << 0x1;
@@ -154,7 +162,7 @@ int main(int argc, char* argv[])
                     break;
                 }
             }
-            std::cout << "new keypad state: " << chip8.keypad << std::endl;
+            //std::cout << "new keypad state: " << chip8.keypad << std::endl;
         }
 
        

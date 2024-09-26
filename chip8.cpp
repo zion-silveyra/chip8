@@ -2,6 +2,7 @@
 #include <random>
 #include <fstream>
 #include <array>
+#include <cstdint>
 
 void chip8::reset()
 {
@@ -23,6 +24,18 @@ void chip8::loadProgram(char const* filename)
     ifstream.read(buf, 0x1000-0x200);
 
     std::copy(std::begin(buf), std::end(buf), &mem[0x200]);
+
+    
+}
+
+void chip8::runTimers()
+{
+    decrementTimers = true;
+}
+
+bool chip8::audioIsPlaying()
+{
+    return sound != 0;
 }
 
 void chip8::runCycle()
@@ -33,9 +46,11 @@ void chip8::runCycle()
     // if ext timer-- flag set, do so   
 
     if (decrementTimers) {
-        --delay;
-        --sound;
+        if (delay > 0)  --delay;
+        if (sound > 0)  --sound;
+        decrementTimers = false;
     }
+    
     
     uint16_t instr = (mem[pc] << 8) | mem[pc+1];
     pc += 2;
@@ -353,10 +368,13 @@ void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
 
     for (i=0;i<nBytes;++i) {
         for (j=0;j<7;++j) {
+            xPos %= 64;
+            yPos %= 32;
+
             vramIndex = 64*yPos + xPos;
 
             screenPixelOn = display[vramIndex] != 0;
-            spritePixelOn = (sprite[i] & (0x80 >> j))
+            spritePixelOn = (sprite[i] & (0x80 >> j));
 
             if (screenPixelOn && spritePixelOn)
                 v[0xf] |= 0x01;
@@ -367,7 +385,7 @@ void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
         }
         ++yPos;
     }
-
+    drawFlag |= 0x01;
 }
 
 // skip if key in vx is pressed

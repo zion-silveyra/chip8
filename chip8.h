@@ -1,9 +1,12 @@
 #ifndef CHIP_8
 #define CHIP_8
 
+#include <cstdint>
+
 class chip8 {
 public:
-    uint8_t display[64*32];
+    uint8_t display[64*32]; 
+    uint8_t drawFlag; 
     uint16_t keypad;
 
     bool audioIsPlaying();
@@ -17,6 +20,7 @@ private:
 
     uint8_t delay, sound;
 
+public:
     uint8_t mem[4096];
 
     bool decrementTimers;
@@ -25,10 +29,13 @@ public:
     void reset();
     void loadProgram(char const* filename);
     void runCycle();
-    void decrementTimers();
+    void runTimers();
     
 private:
     void executeInstruction(uint16_t instr);
+    void loadFonts();
+
+private:
     void op_00e0();
     void op_00ee();
     void op_1nnn(uint16_t addr);

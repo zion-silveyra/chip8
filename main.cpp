@@ -19,9 +19,6 @@ int main(int argc, char* argv[])
     sf::Time elapsed;
     uint64_t cycles{};
 
-    chip8 chip8{ };
-    chip8.reset();
-
     sf::Image pixelArray;
     sf::Texture screen;
     sf::Sprite  sprite;
@@ -29,11 +26,12 @@ int main(int argc, char* argv[])
     sf::Sound audio;
     sf::SoundBuffer audioBuf;
 
-
     pixelArray.create(64, 32, sf::Color::Black);
     sprite.setScale(sf::Vector2f((float)SCALE, (float)SCALE));
     sprite.setPosition(sf::Vector2f(0.0f, 0.0f));
 
+    chip8 chip8{};
+    chip8.reset();
     chip8.loadProgram(argv[1]);
 
     while (window.isOpen())

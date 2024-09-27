@@ -20,11 +20,14 @@ Z X C V
 ```
 You can use backspace to reset / reload the current ROM
 
-#### The current state of things:
-- Does not have audio
-- The random number generation is broken
-- It *does* run a handful of games okay, many are hopelessly broken
+#### TODO:
+- Implement audio
+- Separate clock and delay/sound timers
+- Configurable execution speed
+- Configurable display size
+- ROM compatibility is like, 20%, that isn't great
 
 #### Note on subfolders
 The *games* folder was sourced [here](https://www.zophar.net/pdroms/chip8/chip-8-games-pack.html)
+
 The *tests* folder was sourced [here](https://github.com/Timendus/chip8-test-suite)

@@ -2,6 +2,7 @@
 #define CHIP_8
 
 #include <cstdint>
+#include <random>
 
 class chip8 {
 public:
@@ -15,14 +16,16 @@ private:
     uint8_t  v[16];
     uint16_t pc, index;
 
+    uint8_t mem[4096];
+
     uint16_t stack[16];
     uint8_t  sp;
 
     uint8_t delay, sound;
 
-public:
-    uint8_t mem[4096];
-
+    std::mt19937 mt{ std::random_device{}() };
+    std::uniform_int_distribution<> random{0, 0xff};
+    
     bool decrementTimers;
 
 public:

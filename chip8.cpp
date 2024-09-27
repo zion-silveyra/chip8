@@ -409,11 +409,7 @@ void chip8::op_bnnn(uint16_t addr)
 // random number, then AND 
 void chip8::op_cxkk(uint8_t reg, uint8_t imm)
 {
-    // maybe use my own RNG 
-    std::default_random_engine generator;
-    std::uniform_int_distribution<int> distribution(0x00, 0xff);
-
-    v[reg] = distribution(generator) & imm;
+    v[reg] = (uint8_t)random(mt) & imm;
 }
 
 // draw sprite (idk, this might work)

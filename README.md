@@ -21,7 +21,6 @@ Z X C V
 You can use backspace to reset / reload the current ROM
 
 #### TODO:
-- Implement audio
 - Separate clock and delay/sound timers
 - Configurable execution speed
 - Configurable display size

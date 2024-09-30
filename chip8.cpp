@@ -1,4 +1,5 @@
 #include "chip8.h"
+
 #include <random>
 #include <fstream>
 #include <array>
@@ -231,9 +232,6 @@ void chip8::executeInstruction(uint16_t instr)
         break;
     }
 }
-
-// Instruction set as specified in //
-// http://devernay.free.fr/hacks/chip8/C8TECH10.HTM // 
 
 // Clear display
 void chip8::op_00e0()
@@ -526,8 +524,6 @@ void chip8::op_fx55(uint8_t reg)
     for (int i=0x0;i<=reg;++i) {
         mem[index++] = v[i];
     }
-
-
 }
 
 // read registers v0 - vx from index

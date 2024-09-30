@@ -1,0 +1,22 @@
+all: chip8 test-display test-cpu test-quirks test-io
+
+chip8: main.cpp chip8.cpp
+	g++ main.cpp chip8.cpp -lsfml-system -lsfml-window -lsfml-graphics -lsfml-audio -o chip8
+
+test-display: chip8 tests/1-chip8-logo.ch8 tests/2-ibm-logo.ch8
+	./chip8 tests/1-chip8-logo.ch8
+	./chip8 tests/2-ibm-logo.ch8
+
+test-cpu: chip8 tests/3-corax+.ch8 tests/4-flags.ch8
+	./chip8 tests/3-corax+.ch8
+	./chip8 tests/4-flags.ch8
+
+test-quirks: chip8 tests/5-quirks.ch8
+	./chip8 tests/5-quirks.ch8
+
+test-io: chip8 tests/6-keypad.ch8 tests/7-beep.ch8
+	./chip8 tests/6-keypad.ch8
+	./chip8 tests/7-beep.ch8
+
+clean:
+	rm chip8

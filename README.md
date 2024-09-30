@@ -1,9 +1,15 @@
 # chip8 interpreter
 CHIP-8 Emulator written in C++ and SFML
 
+#### Instructions
 To build:
 ``` 
-g++ main.cpp chip8.cpp -lsfml-system -lsfml-window -lsfml-graphics -lsfml-audio -o chip8
+make chip8
+```
+
+To test:
+```
+make all
 ```
 
 To use:
@@ -25,6 +31,7 @@ You can use backspace to reset / reload the current ROM
 - Configurable execution speed
 - Configurable display size
 - ROM compatibility is like, 20%, that isn't great
+- Fix CPU usage
 
 #### Note on subfolders
 The *games* folder was sourced [here](https://www.zophar.net/pdroms/chip8/chip-8-games-pack.html)

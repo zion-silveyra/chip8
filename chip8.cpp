@@ -335,13 +335,13 @@ void chip8::op_8xy4(uint8_t regA, uint8_t regB)
 // sub
 void chip8::op_8xy5(uint8_t regA, uint8_t regB)
 {
-    uint8_t setFlag{};
+    uint8_t setFlag{0x01};
 
-    if (v[regA] > v[regB]) {
-        setFlag |= 0x01;
+    if (v[regA] < v[regB]) {
+        setFlag &= 0x00;
     }
 
-    v[regA] -= v[regB];
+    v[regA] = v[regA] - v[regB];
 
     v[0xf] = setFlag;
 }
@@ -360,16 +360,18 @@ void chip8::op_8xy6(uint8_t regA, uint8_t regB)
 }
 
 // subn
+
 void chip8::op_8xy7(uint8_t regA, uint8_t regB)
 {
-    uint8_t setFlag{};
+    uint8_t setFlag{0x01};
 
-    if (v[regB] > v[regA])
-        setFlag |= 0x01;
+    if (v[regA] > v[regB]) {
+        setFlag &= 0x00;
+    }
 
     v[regA] = v[regB] - v[regA];
 
-    v[0xf] = setFlag; 
+    v[0xf] = setFlag;
 }
 
 // shift left

@@ -59,22 +59,12 @@ void chip8::loadProgram(char const* filename)
     ifstream.read(buf, 0x0FFF-0x200);
 
     std::copy(std::begin(buf), std::end(buf), &mem[0x200]);
-
-    //std::cout << "\nMemory dump after program load:\n";
-    int w = 0;
-    for (int i=0;i<4096;++i) {
-        //std::cout << std::hex << (uint16_t)mem[i] << " ";
-        if (++w == 16) {
-            //std::cout << std::endl;
-            w=0;
-        }
-    }
-
 }
 
 void chip8::runTimers()
 {
-    decrementTimers = true;
+    if (delay > 0) --delay;
+    if (sound > 0) --sound;
 }
 
 bool chip8::audioIsPlaying()
@@ -89,12 +79,14 @@ void chip8::runCycle()
     // call function
     // if ext timer-- flag set, do so   
 
+    /*
     if (decrementTimers) {
         if (delay > 0)  --delay;
         if (sound > 0)  --sound;
         decrementTimers = false;
     }
-    
+    */
+   
     //std::cout << "fetch from pc : " << pc;
 
     uint16_t instr = (mem[pc] << 8) | mem[pc+1];

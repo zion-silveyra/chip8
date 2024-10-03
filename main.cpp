@@ -23,7 +23,9 @@ int main(int argc, char* argv[])
     // ---------- Clock ---------- //
     sf::Time clk_period = sf::microseconds(1850);
     sf::Clock clock;
-    sf::Time elapsed;
+    sf::Clock timer;
+    sf::Time   clk_elapsed;
+    sf::Time timer_elapsed;
     uint64_t cycles{};
 
     // ---------- Rendering ---------- //
@@ -74,9 +76,15 @@ int main(int argc, char* argv[])
                     chip8.loadProgram(argv[1]);
                     break;
                 case sf::Keyboard::Dash:
-                    // lower execution speed
+                    // decrease execution speed
+                    clk_period += sf::microseconds(100);
+                    std::cout << "New clock period: " << clk_period.asMicroseconds() << std::endl;
+                    break;
                 case sf::Keyboard::Equal:
-                    // higher execution speed
+                    // increase execution speed
+                    clk_period -= sf::microseconds(100);
+                    std::cout << "New clock period: " << clk_period.asMicroseconds() << std::endl;
+                    break;
                 default:
                     updateKeypad(event, chip8.keypad);
                 }
@@ -87,15 +95,17 @@ int main(int argc, char* argv[])
         }
 
         // cycle clock, pause when window not in focus
-        elapsed = clock.getElapsedTime();
-        if ((elapsed >= clk_period && windowInFocus)) {
+        clk_elapsed = clock.getElapsedTime();
+        if ((clk_elapsed >= clk_period && windowInFocus)) {
             clock.restart();
             chip8.runCycle();
             ++cycles;
         }
 
         // run sound/delay timers at 60hz
-        if (!(cycles % 9)) {
+        timer_elapsed = timer.getElapsedTime();
+        if (timer_elapsed >= sf::microseconds(16667)) {
+            timer.restart();
             chip8.runTimers();
         }
         

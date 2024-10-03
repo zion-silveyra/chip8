@@ -351,10 +351,10 @@ void chip8::op_8xy6(uint8_t regA, uint8_t regB)
 {
     uint8_t setFlag{};
 
-    if (v[regA] & 0x01)
+    if (v[regB] & 0x01)
         setFlag |= 0x01;
 
-    v[regA] = v[regA] >> 1;
+    v[regA] = v[regB] >> 1;
     
     v[0xf] = setFlag;
 }
@@ -379,10 +379,10 @@ void chip8::op_8xye(uint8_t regA, uint8_t regB)
 {
     uint8_t setFlag{};
 
-    if (v[regA] & 0x80)
+    if (v[regB] & 0x80)
         setFlag |= 0x01;
 
-    v[regA] = v[regA] << 1;
+    v[regA] = v[regB] << 1;
 
     v[0xf] = setFlag;
 }

@@ -26,6 +26,8 @@ Z X C V
 ```
 You can use backspace to reset / reload the current ROM
 
+You can use +/- (next to backspace) to increase/decrease speed
+
 #### TODO:
 - Configurable display size
 - ROM compatibility is like, 20%, that isn't great

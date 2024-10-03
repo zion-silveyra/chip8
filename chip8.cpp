@@ -419,15 +419,19 @@ void chip8::op_dxyn(uint8_t regA, uint8_t regB, uint8_t imm)
     //std::cout << std::dec << "Sprite initial position, height: " << "(" << (int)xPos << ", " << (int)yPos;
     //std::cout << "), " << (int)spriteHeight << std::endl;
 
+    v[0xf] = 0x00;
+
     for (i=0;i<spriteHeight;++i) {
-        for (j=0;j<8;++j) {
-            vramIndex = 64*((yPos + i) % 32) + ((xPos+j) % 64);
+        if (yPos + i < 63) {
+            for (j=0;j<8;++j) {
+                vramIndex = 64*((yPos + i) % 32) + ((xPos+j) % 64);
 
-            if ((bool)display[vramIndex] && (bool)(mem[index+i] & (0x80 >> j))) {
-                v[0xf] |= 0x01;
+                if ((bool)display[vramIndex] && ((bool)(mem[index+i] & (0x80 >> j)))) {
+                    v[0xf] |= 0x01;
+                }
+
+                display[vramIndex] ^= (mem[index+i] & (0x80 >> j));
             }
-
-            display[vramIndex] ^= (mem[index+i] & (0x80 >> j));
         }
     }
     drawFlag |= 0x01;

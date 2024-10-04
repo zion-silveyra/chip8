@@ -26,14 +26,13 @@ Z X C V
 ```
 You can use backspace to reset / reload the current ROM
 
-You can use +/- (next to backspace) to increase/decrease speed
+You can use +/- (next to backspace) to adjust execution speed
 
 #### TODO:
-- Configurable display size
-- ROM compatibility is like, 20%, that isn't great
+- Color themes
 - Fix CPU usage
 
-#### Note on subfolders
-The *games* folder was sourced [here](https://www.zophar.net/pdroms/chip8/chip-8-games-pack.html)
+#### Note on roms subfolder
+Test roms were sourced [here](https://github.com/Timendus/chip8-test-suite)
 
-The *tests* folder was sourced [here](https://github.com/Timendus/chip8-test-suite)
+Games and demos were sourced [here](https://github.com/kripod/chip8-roms) and [here](https://johnearnest.github.io/chip8Archive/?sort=platform)

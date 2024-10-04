@@ -26,14 +26,13 @@ Z X C V     A 0 B F
 ```
 <kbd>Bksp</kbd> resets the interpreter, and reloads the current ROM
 
-<kbd>+</kbd>/<kbd>-</kbd> keys adjust the execution speed
+<kbd>-</kbd>/<kbd>+</kbd> keys adjust the execution speed
 
 <kbd>\\</kbd> cycles through five color themes
 
 <kbd>Enter</kbd> inverts the sprite and background colors
 
 #### TODO:
-- Color themes
 - Fix CPU usage
 
 #### Note on roms subfolder

@@ -17,12 +17,12 @@ To use:
 ./chip8 ROM_FILE
 ```
 #### Controls
-The keypad is mapped to the keys:
+The keyboard is mapped to the keyapd as such:
 ```
-1 2 3 4
-Q W E R
-A S D F
-Z X C V
+1 2 3 4     1 2 3 C
+Q W E R  => 4 5 6 D
+A S D F  => 7 8 9 E
+Z X C V     A 0 B F
 ```
 You can use backspace to reset / reload the current ROM
 

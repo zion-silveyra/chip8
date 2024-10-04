@@ -17,16 +17,20 @@ To use:
 ./chip8 ROM_FILE
 ```
 #### Controls
-The keyboard is mapped to the keyapd as such:
+The keyboard is mapped to the keypad as such:
 ```
 1 2 3 4     1 2 3 C
 Q W E R  => 4 5 6 D
 A S D F  => 7 8 9 E
 Z X C V     A 0 B F
 ```
-You can use backspace to reset / reload the current ROM
+<kbd>Bksp</kbd> resets the interpreter, and reloads the current ROM
 
-You can use +/- (next to backspace) to adjust execution speed
+<kbd>+</kbd>/<kbd>-</kbd> keys adjust the execution speed
+
+<kbd>\\</kbd> cycles through five color themes
+
+<kbd>Enter</kbd> inverts the sprite and background colors
 
 #### TODO:
 - Color themes

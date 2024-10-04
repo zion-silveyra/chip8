@@ -12,6 +12,7 @@ constexpr int SCALE = 16;
 
 void generateSamples(sf::Int16 * destination, int size);
 void updateKeypad(sf::Event keyboardEvent, uint16_t &keypad);
+void cycleColorTheme(sf::Color &, sf::Color&);
 
 int main(int argc, char* argv[])
 {
@@ -29,6 +30,11 @@ int main(int argc, char* argv[])
     uint64_t cycles{};
 
     // ---------- Rendering ---------- //
+    sf::Color backgroundColor;
+    sf::Color foregroundColor;
+    uint8_t   invertColors{};
+    cycleColorTheme(foregroundColor, backgroundColor);
+
     sf::Image pixelArray;
     sf::Texture screen;
     sf::Sprite  sprite;
@@ -78,12 +84,18 @@ int main(int argc, char* argv[])
                 case sf::Keyboard::Dash:
                     // decrease execution speed
                     clk_period += sf::microseconds(100);
-                    std::cout << "New clock period: " << clk_period.asMicroseconds() << std::endl;
                     break;
                 case sf::Keyboard::Equal:
                     // increase execution speed
                     clk_period -= sf::microseconds(100);
-                    std::cout << "New clock period: " << clk_period.asMicroseconds() << std::endl;
+                    break;
+                case sf::Keyboard::Backslash:
+                    cycleColorTheme(foregroundColor, backgroundColor);
+                    chip8.drawFlag = true; // otherwise it won't draw instantly
+                    break;
+                case sf::Keyboard::Enter:
+                    invertColors = !invertColors;
+                    chip8.drawFlag = true;
                     break;
                 default:
                     updateKeypad(event, chip8.keypad);
@@ -111,15 +123,22 @@ int main(int argc, char* argv[])
         
         // draw when video memory updated
         if (chip8.drawFlag) {
-            sf::Color drawColor;
             uint16_t vramIndex;
+            sf::Color drawColor;
             uint32_t x{0};
             uint32_t y{0};
 
             for (y=0;y<32;++y) {
                 for (x=0;x<64;++x) {
                     vramIndex = (64 * y) + x;
-                    drawColor = (chip8.display[vramIndex] == 0) ? sf::Color::Black : sf::Color::White;
+
+                    if (invertColors) {
+                        drawColor = (chip8.display[vramIndex] == 0) ? foregroundColor : backgroundColor;
+                    }
+                    else {
+                        drawColor = (chip8.display[vramIndex] == 0) ? backgroundColor : foregroundColor;
+                    }
+
                     pixelArray.setPixel(x, y, drawColor);
                 }
             }
@@ -148,6 +167,44 @@ void generateSamples(sf::Int16 * destination, int size)
 {
     for (int i{}; i < size; ++i) {
         destination[i] = ((i & 0x80) ? 500000 : 0);
+    }
+}
+
+void cycleColorTheme(sf::Color &foreground, sf::Color &background) {
+    enum ColorTheme {
+        BLACK_WHITE,
+        BLACK_GREY,
+        BLUE,
+        GREEN,
+        PERIWINKLE,
+        num_themes,
+    };
+
+    static int select = 0;
+    enum ColorTheme themeSelection = (ColorTheme)(select % num_themes);
+    ++select;
+
+    switch (themeSelection) {
+        case BLACK_WHITE:
+        foreground = sf::Color::White;
+        background = sf::Color::Black;
+            break;
+        case BLACK_GREY:
+        foreground = sf::Color::Black;
+        background = sf::Color(sf::Uint8(63), sf::Uint8(71), sf::Uint8(71));
+            break;
+        case BLUE:
+        foreground = sf::Color(sf::Uint8(173), sf::Uint8(176), sf::Uint8(237));
+        background = sf::Color(sf::Uint8(30), sf::Uint8(30), sf::Uint8(69));
+            break;
+        case GREEN:
+        foreground = sf::Color(sf::Uint8(202), sf::Uint8(227), sf::Uint8(210));
+        background = sf::Color(sf::Uint8(34), sf::Uint8(56), sf::Uint8(41));
+            break;
+        case PERIWINKLE:
+        foreground = sf::Color(sf::Uint32(0xD2CAE3FF));
+        background = sf::Color(sf::Uint32(0x51457EFF));
+            break;
     }
 }
 
@@ -206,7 +263,6 @@ void updateKeypad(sf::Event event, uint16_t &keypad)
         }
     }
     if (event.type == sf::Event::KeyReleased) {
-        //std::cout << "key released" << std::endl;
         switch (event.key.code) {
         case sf::Keyboard::Num1: // c8 1
             keypad ^= 0x01 << 0x1;
